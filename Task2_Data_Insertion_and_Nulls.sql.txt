@@ -1,0 +1,227 @@
+-- ===============================================
+-- SQL DEVELOPER INTERNSHIP - TASK 2
+-- Data Insertion and Handling Nulls
+-- ===============================================
+
+-- Create a sample database and tables for demonstration
+-- Using MySQL syntax to match your Task 1 style
+
+-- Create database for Task 2
+CREATE DATABASE Task2DB;
+USE Task2DB;
+
+-- Create a sample Employees table (MySQL syntax)
+CREATE TABLE Employees (
+    emp_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100),
+    phone VARCHAR(15),
+    salary DECIMAL(10,2) DEFAULT 50000,
+    department VARCHAR(50),
+    hire_date DATE,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Create a Departments table for foreign key demonstration
+CREATE TABLE Departments (
+    dept_id INT AUTO_INCREMENT PRIMARY KEY,
+    dept_name VARCHAR(50) NOT NULL,
+    manager_id INT,
+    budget DECIMAL(12,2)
+);
+
+-- ===============================================
+-- 1. INSERT INTO OPERATIONS
+-- ===============================================
+
+-- Insert complete records
+INSERT INTO Employees (emp_id, first_name, last_name, email, phone, salary, department, hire_date, is_active)
+VALUES 
+    (1, 'John', 'Doe', 'john.doe@company.com', '123-456-7890', 60000, 'IT', '2023-01-15', TRUE),
+    (2, 'Jane', 'Smith', 'jane.smith@company.com', '098-765-4321', 65000, 'HR', '2023-02-20', TRUE),
+    (3, 'Mike', 'Johnson', 'mike.johnson@company.com', NULL, 70000, 'Finance', '2023-03-10', TRUE);
+
+-- Insert with some NULL values
+INSERT INTO Employees (emp_id, first_name, last_name, email, department, hire_date)
+VALUES 
+    (4, 'Sarah', 'Wilson', 'sarah.wilson@company.com', 'Marketing', '2023-04-05'),
+    (5, 'Tom', 'Brown', NULL, 'IT', '2023-05-12');
+
+-- Insert using DEFAULT values
+INSERT INTO Employees (emp_id, first_name, last_name, email, department, hire_date, salary)
+VALUES (6, 'Lisa', 'Davis', 'lisa.davis@company.com', 'Sales', '2023-06-01', DEFAULT);
+
+-- Insert into specific columns only
+INSERT INTO Employees (emp_id, first_name, last_name, department)
+VALUES (7, 'Robert', 'Miller', 'IT');
+
+-- Insert values using SELECT (copying from existing data)
+INSERT INTO Employees (emp_id, first_name, last_name, email, salary, department, hire_date, is_active)
+SELECT 8, 'Copy', 'Employee', 'copy@company.com', salary, department, '2023-07-01', is_active
+FROM Employees 
+WHERE emp_id = 1;
+
+-- Insert into Departments table
+INSERT INTO Departments (dept_id, dept_name, manager_id, budget)
+VALUES 
+    (1, 'Information Technology', 1, 500000.00),
+    (2, 'Human Resources', 2, 200000.00),
+    (3, 'Finance', 3, 300000.00),
+    (4, 'Marketing', NULL, 150000.00),
+    (5, 'Sales', NULL, NULL);
+
+-- ===============================================
+-- 2. HANDLING NULL VALUES
+-- ===============================================
+
+-- Select records with NULL values
+SELECT * FROM Employees WHERE email IS NULL;
+SELECT * FROM Employees WHERE phone IS NULL;
+SELECT * FROM Employees WHERE hire_date IS NULL;
+
+-- Select records with NOT NULL values
+SELECT * FROM Employees WHERE email IS NOT NULL;
+
+-- Using COALESCE to handle NULLs (works in most SQL databases)
+SELECT 
+    emp_id,
+    first_name,
+    last_name,
+    COALESCE(email, 'No Email Provided') as email_display,
+    COALESCE(phone, 'No Phone') as phone_display,
+    COALESCE(salary, 0) as salary_display
+FROM Employees;
+
+-- ===============================================
+-- 3. UPDATE OPERATIONS
+-- ===============================================
+
+-- Update single record
+UPDATE Employees 
+SET email = 'tom.brown.updated@company.com' 
+WHERE emp_id = 5;
+
+-- Update multiple rows with same condition
+UPDATE Employees 
+SET salary = salary * 1.10 
+WHERE department = 'IT';
+
+-- Update with NULL values
+UPDATE Employees 
+SET phone = NULL 
+WHERE emp_id = 1;
+
+-- Update using CASE statement
+UPDATE Employees 
+SET salary = 
+    CASE 
+        WHEN department = 'Finance' THEN salary * 1.15
+        WHEN department = 'HR' THEN salary * 1.12
+        ELSE salary * 1.08
+    END
+WHERE salary IS NOT NULL;
+
+-- Update multiple columns
+UPDATE Employees 
+SET email = 'sarah.wilson.new@company.com', 
+    phone = '555-123-4567',
+    salary = 68000
+WHERE emp_id = 4;
+
+-- ===============================================
+-- 4. DELETE OPERATIONS
+-- ===============================================
+
+-- Delete with specific condition
+DELETE FROM Employees WHERE emp_id = 8;
+
+-- Delete records with NULL values in specific column
+DELETE FROM Employees WHERE hire_date IS NULL;
+
+-- Delete multiple records
+DELETE FROM Employees WHERE department = 'Sales' AND salary < 60000;
+
+-- ===============================================
+-- 5. DEMONSTRATION OF CONSTRAINTS
+-- ===============================================
+
+-- This will fail due to NOT NULL constraint
+-- INSERT INTO Employees (emp_id, last_name) VALUES (9, 'TestUser');
+
+-- This will work with NULL in optional field
+INSERT INTO Employees (emp_id, first_name, last_name, email) 
+VALUES (9, 'Test', 'User', NULL);
+
+-- ===============================================
+-- 6. TRANSACTION CONTROL (For Rollback Demo)
+-- ===============================================
+
+-- Begin transaction
+BEGIN TRANSACTION;
+
+-- Insert some test data
+INSERT INTO Employees (emp_id, first_name, last_name, department)
+VALUES (10, 'Temp', 'Employee', 'Testing');
+
+-- Check the insertion
+SELECT * FROM Employees WHERE emp_id = 10;
+
+-- Rollback the transaction
+ROLLBACK;
+
+-- Verify rollback worked
+SELECT * FROM Employees WHERE emp_id = 10;
+
+-- ===============================================
+-- 7. CASCADE DELETE DEMONSTRATION
+-- ===============================================
+
+-- Create tables with CASCADE constraint (MySQL syntax)
+CREATE TABLE Projects (
+    project_id INT AUTO_INCREMENT PRIMARY KEY,
+    project_name VARCHAR(100) NOT NULL,
+    emp_id INT,
+    FOREIGN KEY (emp_id) REFERENCES Employees(emp_id) ON DELETE CASCADE
+);
+
+-- Insert project data
+INSERT INTO Projects (project_id, project_name, emp_id)
+VALUES 
+    (1, 'Database Migration', 1),
+    (2, 'HR System Upgrade', 2),
+    (3, 'Financial Reporting', 3);
+
+-- When we delete an employee, their projects will also be deleted due to CASCADE
+-- DELETE FROM Employees WHERE emp_id = 1;
+
+-- ===============================================
+-- 8. FINAL DATA VERIFICATION
+-- ===============================================
+
+-- Display all current data
+SELECT 'EMPLOYEES TABLE' as table_name;
+SELECT * FROM Employees ORDER BY emp_id;
+
+SELECT 'DEPARTMENTS TABLE' as table_name;
+SELECT * FROM Departments ORDER BY dept_id;
+
+SELECT 'PROJECTS TABLE' as table_name;
+SELECT * FROM Projects ORDER BY project_id;
+
+-- Count records with NULL values
+SELECT 
+    'Records with NULL email' as description,
+    COUNT(*) as count 
+FROM Employees 
+WHERE email IS NULL;
+
+SELECT 
+    'Records with NULL phone' as description,
+    COUNT(*) as count 
+FROM Employees 
+WHERE phone IS NULL;
+
+-- ===============================================
+-- END OF TASK 2 SCRIPT
+-- ===============================================
