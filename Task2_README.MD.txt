@@ -1,5 +1,7 @@
 Internship Task 2 - Data Manipulation Language (DML) & Handling Nulls
+
 Objective
+
 This task aims to provide practical experience with fundamental SQL Data Manipulation Language (DML) commands, including INSERT, UPDATE, and DELETE. It also focuses on the proper handling of NULL values, demonstrating data integrity constraints, and using basic transaction control to manage data changes.
 
 Key Concepts
@@ -28,5 +30,6 @@ Open your preferred SQL database client, such as DB Fiddle or SQLiteStudio.
 Copy the entire content of the Task2_Data_Insertion_and_Nulls.sql.txt file.
 
 Execute the script. It will first create the Task2DB database, the Employees and Departments tables, and a Projects table.
+
 
 The script will then demonstrate various INSERT, UPDATE, and DELETE operations, followed by a series of SELECT statements to verify the final state of the data in each table.
